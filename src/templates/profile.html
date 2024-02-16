@@ -20,7 +20,17 @@
                     <li><a href="{{url_for('logout')}}">logout</a></li>
                 </ul>
      </nav>
-    
+    <center>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class=flashes>
+                    {% for message in messages %}
+                        {{ message }}<br><br>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    </center>
     <a href="{{url_for('NewVehicle')}}">Add New Vehicle Info.</a><br>
     <a href="{{url_for('DeleteUser')}}">Delete Account</a>
     <div class="container mt-5">
@@ -55,20 +65,28 @@
                 {% for ri in row_insurance %}
                     <h5 class="card-title">Insurance Details</h5>
                     <p class="card-text">Duration(Months): {{ri.months}} </p>
+                    <p class="card-text">Expire Date: {{ri.expireDate}} </p>
                     <p class="card-text">Amount per month: {{ri.amount}} </p>
                     <p class="card-text">Insurance Provider: {{ri.provider}} </p>
+
                     <a href="{{url_for('InsuranceUpdate')}}">Update Insurance Info.</a><br><br><br>
                 {% endfor %} 
             </div>
         </div>
     </div>
   
-    <script>    
+    <script>
+        // Only push state to /login when user logs out
+        function pushLoginState() {
             window.history.pushState(null, '', '/login');
-            window.addEventListener('popstate', function(event) {
+        }
+    
+        window.addEventListener('popstate', function(event) {
+            // You may want to handle other cases here
             window.history.pushState(null, '', '/login');
         });
     </script>
+    
     
 </body>
 </html>

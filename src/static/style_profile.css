@@ -97,3 +97,6 @@ button {
 button:hover {
     background-color: #ff7f00;
 }
+.flashes {
+    color: white
+}

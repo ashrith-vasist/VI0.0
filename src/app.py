@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, session, make_respo
 import mysql.connector
 import bcrypt
 import datetime as dt
+from datetime import date
 import uuid
 
 app = Flask(__name__)
@@ -54,6 +55,7 @@ def create_insurace_info():
                     userid INT,
                     vid INT,
                     months INT(3) NOT NULL,
+                    expireDate DATE,
                     amount INT(10) NOT NULL,
                     provider VARCHAR(225) NOT NULL,
                     FOREIGN KEY (userid) REFERENCES users(userid),
@@ -82,6 +84,7 @@ def register():
         cursor.close()
 
         return redirect('/info')
+        flash('User registered successfully')
     return render_template('register.html')
 
 
@@ -100,6 +103,7 @@ def login():
         if user:
             if bcrypt.checkpw(password, user[2].encode('utf-8')):
                 session['username'] = username
+                flash('Logged in successfully')
                 return redirect('/home')
             else:
                 return 'Invalid username or password'
@@ -121,7 +125,7 @@ def info():
         #Insert User info
         cursor.execute("INSERT INTO user_info(userid,name,contact) VALUES(LAST_INSERT_ID(),%s,%s)",(name,contact))               
         #Extract Vehicle info
-        
+        userid = cursor.lastrowid
         VN=request.form.get('vehicleNumber')
         Mfd=request.form.get('manufactureDate')
         model=request.form.get('model')
@@ -133,8 +137,9 @@ def info():
         months=request.form.get('duration')
         amount=request.form.get('amount')
         policy=request.form.get('policyProvider')
+        exp=request.form.get('expireDate')
         #Insert Insurance info
-        cursor.execute("INSERT INTO insurance_info(userid,vid,months,amount,provider) VALUES(LAST_INSERT_ID(),LAST_INSERT_ID(),%s,%s,%s)",(months,amount,policy))
+        cursor.execute("INSERT INTO insurance_info(userid,vid,months,expireDate,amount,provider) VALUES(LAST_INSERT_ID(),LAST_INSERT_ID(),%s,%s,%s,%s)",(months,exp,amount,policy))
         mydb.commit() 
         cursor.close()
 
@@ -171,6 +176,15 @@ def profile():
 
                 cursor.execute("SELECT * FROM insurance_info WHERE userid = %s", (user_id,))
                 row_insurance = cursor.fetchall()
+                cursor.execute("SELECT expireDate FROM insurance_info WHERE userid=%s",(user_id,))
+                indate_row = cursor.fetchone()
+                today = date.today()
+                if indate_row:
+                       indate = indate_row['expireDate'] 
+                       today = date.today()
+                       if indate <= today:
+                            flash('Your insurance has expired. Please update your insurance information !!!')
+
 
                 return render_template('profile.html', row_user=row_user, row_vehicle=row_vehicle, row_insurance=row_insurance)
 
@@ -192,6 +206,7 @@ def UserUpdate():
                     cursor.execute("UPDATE user_info SET name=%s,contact=%s WHERE userid=%s",(name,contact,user_id))
                     mydb.commit() 
                     cursor.close()
+                    flash('User Information Updated !!!')
                     return redirect('/profile')
         
         return render_template('UserUpdate.html')
@@ -212,6 +227,7 @@ def VehicleUpdate():
                     cursor.execute("UPDATE vehicle_info SET VechNum=%s,make_date=%s,model=%s WHERE userid=%s",(vnum,Mfd,model,user_id))
                     mydb.commit() 
                     cursor.close()
+                    flash('Vehicle Information Updated !!!')
                     return redirect('/profile')
         
         return render_template('VehicleUpdate.html')
@@ -230,9 +246,11 @@ def InsuranceUpdate():
                     months=request.form.get('duration')
                     amount=request.form.get('amount')
                     policy=request.form.get('policyProvider')
-                    cursor.execute("UPDATE insurance_info SET months=%s,amount=%s,provider=%s WHERE userid=%s",(months,amount,policy,user_id))
+                    exp=request.form.get('expireDate')
+                    cursor.execute("UPDATE insurance_info SET months=%s,expireDate=%s,amount=%s,provider=%s WHERE userid=%s",(months,exp,amount,policy,user_id))
                     mydb.commit() 
                     cursor.close()
+                    flash('Insurance Information Updated !!!')
                     return redirect('/profile')
         
         return render_template('InsuranceUpdate.html')
@@ -254,12 +272,14 @@ def NewVehicle():
                     months=request.form.get('duration')
                     amount=request.form.get('amount')
                     policy=request.form.get('policyProvider')
+                    exp=request.form.get('expireDate')
                     cursor.execute("""INSERT INTO vehicle_info(userid,VechNum,make_date,model) VALUES(%s,%s,%s,%s)
                                    """,(user_id,vnum,Mfd,model))
                     cursor.execute("""INSERT INTO insurance_info(userid,vid,months,amount,provider) 
-                                   VALUES(%s,LAST_INSERT_ID(),%s,%s,%s)""",(user_id,months,amount,policy))
+                                   VALUES(%s,LAST_INSERT_ID(),%s,%s,%s,%s)""",(user_id,months,exp,amount,policy))
                     mydb.commit() 
                     cursor.close()
+                    flash('New Vehicle Added !')
                     return redirect('/profile')
         return render_template('NewVehicle.html')
 
@@ -292,6 +312,18 @@ def DeleteUser():
                         
         return render_template('DeleteUser.html')
                      
+@app.route('/alert',methods=['GET', 'POST'])
+def alert():
+    if 'username' in session:
+        if request.method=="POST":
+            username = session.get('username')
+            with mydb.cursor(dictionary=True) as cursor:
+                cursor.execute("SELECT userid FROM users WHERE username = %s", (username,))
+                user_id_row = cursor.fetchone()
+                if user_id_row:
+                    user_id = user_id_row['userid']
+                    
+
 
 
 

@@ -312,16 +312,16 @@ def DeleteUser():
                         
         return render_template('DeleteUser.html')
                      
-@app.route('/alert',methods=['GET', 'POST'])
-def alert():
-    if 'username' in session:
-        if request.method=="POST":
-            username = session.get('username')
-            with mydb.cursor(dictionary=True) as cursor:
-                cursor.execute("SELECT userid FROM users WHERE username = %s", (username,))
-                user_id_row = cursor.fetchone()
-                if user_id_row:
-                    user_id = user_id_row['userid']
+# @app.route('/alert',methods=['GET', 'POST'])
+# def alert():
+#     if 'username' in session:
+#         if request.method=="POST":
+#             username = session.get('username')
+#             with mydb.cursor(dictionary=True) as cursor:
+#                 cursor.execute("SELECT userid FROM users WHERE username = %s", (username,))
+#                 user_id_row = cursor.fetchone()
+#                 if user_id_row:
+#                     user_id = user_id_row['userid']
                     
 
 

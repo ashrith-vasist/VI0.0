@@ -46,13 +46,13 @@
    
         <div class="container mt-5">   
             <div class="card mt-3" style="width: 30rem;">
-                <div class="card-body">
-                    {% for rv in row_vehicle %}
+                <div class="card-body">                    
+                    {% for rv in row_vehicle %}                            
                         <h5 class="card-title">Vechicle Details</h5>
                         <p class="card-text">Vechicle Number: {{rv.VechNum}} </p>
                         <p class="card-text">Manufacture Date: {{rv.make_date}} </p>
                         <p class="card-text">Model: {{rv.model}} </p>
-                        <a href="{{url_for('VehicleUpdate')}}">Update Vehicle Info.</a><br><br><br>
+                        <a href="{{url_for('VehicleUpdate')}}">Update Vehicle Info.</a><br><br><br>                                        
                     {% endfor %}
                 </div>
             </div>
@@ -68,7 +68,6 @@
                     <p class="card-text">Expire Date: {{ri.expireDate}} </p>
                     <p class="card-text">Amount per month: {{ri.amount}} </p>
                     <p class="card-text">Insurance Provider: {{ri.provider}} </p>
-
                     <a href="{{url_for('InsuranceUpdate')}}">Update Insurance Info.</a><br><br><br>
                 {% endfor %} 
             </div>

@@ -8,6 +8,7 @@ import uuid
 app = Flask(__name__)
 app.secret_key = 'boost_is_the_secrect_to_my_energy'
 
+
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -80,7 +81,7 @@ def register():
 
         cursor = mydb.cursor()
         cursor.execute("INSERT INTO users (username, password) VALUES (%s , %s)", (username, hashed_password))
-        mydb.commit()  # Commit changes to the database
+        mydb.commit()  # Commit changes to the database        
         cursor.close()
 
         return redirect('/info')
@@ -97,6 +98,7 @@ def login():
 
         cursor = mydb.cursor()
         cursor.execute("SELECT * FROM users WHERE username = %s ", (username,))
+
         user = cursor.fetchone()
         cursor.close()
 
@@ -117,15 +119,19 @@ def info():
     create_user_info()
     create_vehicle_info()
     create_insurace_info()
+   
     if request.method == "POST":
         cursor=mydb.cursor()
         #extract user info 
+        
         name = request.form.get('name')
-        contact=request.form.get('contact')
+        contact = request.form.get('contact')
+       
         #Insert User info
+        
         cursor.execute("INSERT INTO user_info(userid,name,contact) VALUES(LAST_INSERT_ID(),%s,%s)",(name,contact))               
         #Extract Vehicle info
-        userid = cursor.lastrowid
+        
         VN=request.form.get('vehicleNumber')
         Mfd=request.form.get('manufactureDate')
         model=request.form.get('model')
@@ -160,33 +166,36 @@ def profile():
 
     if 'username' in session:
         username = session.get('username')
+        print(username)
+        with mydb.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT userid FROM users WHERE username = %s", (username,))
+            user_id_row = cursor.fetchone()
+            print(user_id_row)
+            if user_id_row:
+                user_id = user_id_row['userid']
+                int(user_id)
+                print(user_id)
+                cursor.execute("SELECT * FROM user_info WHERE userid = %s", (user_id,))
+                row_user = cursor.fetchone()
+                print(row_user)
+                cursor.execute("SELECT * FROM vehicle_info WHERE userid = %s", (user_id,))
+                row_vehicle = cursor.fetchall()
+                print(row_vehicle)
+                cursor.execute("SELECT * FROM insurance_info WHERE userid = %s", (user_id,))
+                row_insurance = cursor.fetchall()
+                print(row_insurance)
+                cursor.execute("SELECT expireDate FROM insurance_info WHERE userid=%s",(user_id,))
+                indate_row = cursor.fetchall()
+                
+                today = date.today()
+                for idate in indate_row:
+                    if idate:
+                            indate = idate['expireDate']
+                            today = date.today()
+                            if indate <= today:
+                                flash('Your insurance has expired. Please update your insurance information !!!')
 
-        cursor=mydb.cursor()
-        cursor.execute("SELECT userid FROM users WHERE username = %s", (username,))
-        user_id_row = cursor.fetchone()
-
-        if user_id_row:
-            user_id = user_id_row[0]
-
-            cursor.execute("SELECT * FROM user_info WHERE userid = %s", (user_id,))
-            row_user = cursor.fetchone()
-
-            cursor.execute("SELECT * FROM vehicle_info WHERE userid = %s", (user_id,))
-            row_vehicle = cursor.fetchall()
-
-            cursor.execute("SELECT * FROM insurance_info WHERE userid = %s", (user_id,))
-            row_insurance = cursor.fetchall()
-
-            cursor.execute("SELECT expireDate FROM insurance_info WHERE userid=%s",(user_id,))
-            indate_row = cursor.fetchone()
-            today = date.today()
-            if indate_row:
-                    indate = indate_row[0] 
-                    today = date.today()
-                    if indate <= today:
-                        flash('Your insurance has expired. Please update your insurance information !!!')
-
-            
+                
 
     return render_template('profile.html', row_user=row_user, row_vehicle=row_vehicle, row_insurance=row_insurance)
 

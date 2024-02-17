@@ -161,34 +161,35 @@ def profile():
     if 'username' in session:
         username = session.get('username')
 
-        with mydb.cursor(dictionary=True) as cursor:
-            cursor.execute("SELECT userid FROM users WHERE username = %s", (username,))
-            user_id_row = cursor.fetchone()
+        cursor=mydb.cursor()
+        cursor.execute("SELECT userid FROM users WHERE username = %s", (username,))
+        user_id_row = cursor.fetchone()
 
-            if user_id_row:
-                user_id = user_id_row['userid']
+        if user_id_row:
+            user_id = user_id_row[0]
 
-                cursor.execute("SELECT * FROM user_info WHERE userid = %s", (user_id,))
-                row_user = cursor.fetchone()
+            cursor.execute("SELECT * FROM user_info WHERE userid = %s", (user_id,))
+            row_user = cursor.fetchone()
 
-                cursor.execute("SELECT * FROM vehicle_info WHERE userid = %s", (user_id,))
-                row_vehicle = cursor.fetchall()
+            cursor.execute("SELECT * FROM vehicle_info WHERE userid = %s", (user_id,))
+            row_vehicle = cursor.fetchall()
 
-                cursor.execute("SELECT * FROM insurance_info WHERE userid = %s", (user_id,))
-                row_insurance = cursor.fetchall()
-                cursor.execute("SELECT expireDate FROM insurance_info WHERE userid=%s",(user_id,))
-                indate_row = cursor.fetchone()
-                today = date.today()
-                if indate_row:
-                       indate = indate_row['expireDate'] 
-                       today = date.today()
-                       if indate <= today:
-                            flash('Your insurance has expired. Please update your insurance information !!!')
+            cursor.execute("SELECT * FROM insurance_info WHERE userid = %s", (user_id,))
+            row_insurance = cursor.fetchall()
 
+            cursor.execute("SELECT expireDate FROM insurance_info WHERE userid=%s",(user_id,))
+            indate_row = cursor.fetchone()
+            today = date.today()
+            if indate_row:
+                    indate = indate_row[0] 
+                    today = date.today()
+                    if indate <= today:
+                        flash('Your insurance has expired. Please update your insurance information !!!')
 
-                return render_template('profile.html', row_user=row_user, row_vehicle=row_vehicle, row_insurance=row_insurance)
+            
 
-        return redirect(url_for('login'))
+    return render_template('profile.html', row_user=row_user, row_vehicle=row_vehicle, row_insurance=row_insurance)
+
     
 #Update user information
 @app.route('/UserUpdate',methods=['GET', 'POST'])
@@ -275,7 +276,7 @@ def NewVehicle():
                     exp=request.form.get('expireDate')
                     cursor.execute("""INSERT INTO vehicle_info(userid,VechNum,make_date,model) VALUES(%s,%s,%s,%s)
                                    """,(user_id,vnum,Mfd,model))
-                    cursor.execute("""INSERT INTO insurance_info(userid,vid,months,amount,provider) 
+                    cursor.execute("""INSERT INTO insurance_info(userid,vid,months,expireDate,amount,provider) 
                                    VALUES(%s,LAST_INSERT_ID(),%s,%s,%s,%s)""",(user_id,months,exp,amount,policy))
                     mydb.commit() 
                     cursor.close()
@@ -312,16 +313,7 @@ def DeleteUser():
                         
         return render_template('DeleteUser.html')
                      
-# @app.route('/alert',methods=['GET', 'POST'])
-# def alert():
-#     if 'username' in session:
-#         if request.method=="POST":
-#             username = session.get('username')
-#             with mydb.cursor(dictionary=True) as cursor:
-#                 cursor.execute("SELECT userid FROM users WHERE username = %s", (username,))
-#                 user_id_row = cursor.fetchone()
-#                 if user_id_row:
-#                     user_id = user_id_row['userid']
+
                     
 
 

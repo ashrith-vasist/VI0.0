@@ -10,9 +10,9 @@ app.secret_key = 'boost_is_the_secrect_to_my_energy'
 
 
 mydb = mysql.connector.connect(
-    host="localhost",
+    host="172.27.179.8",
     user="root",
-    password="12345",
+    password="Shanks@2003",
     port='3306',
     database="DBMS"  # Specify the database name here
 )
@@ -21,9 +21,9 @@ mydb = mysql.connector.connect(
 def create_user_reg():
     cursor = mydb.cursor()
     cursor.execute("""CREATE TABLE IF NOT EXISTS users(
-                   userid INT AUTO_INCREMENT PRIMARY KEY,
-                   username VARCHAR(225) NOT NULL,
-                   password VARCHAR(225) NOT NULL)""")
+                userid INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(225) NOT NULL,
+                password VARCHAR(225) NOT NULL)""")
     cursor.close()
 
 # User info table
@@ -119,14 +119,14 @@ def info():
     create_user_info()
     create_vehicle_info()
     create_insurace_info()
-   
+
     if request.method == "POST":
         cursor=mydb.cursor()
         #extract user info 
         
         name = request.form.get('name')
         contact = request.form.get('contact')
-       
+    
         #Insert User info
         
         cursor.execute("INSERT INTO user_info(userid,name,contact) VALUES(LAST_INSERT_ID(),%s,%s)",(name,contact))               
@@ -138,7 +138,7 @@ def info():
         #Insert Vechicle info
         cursor.execute("INSERT INTO vehicle_info(userid,VechNum,make_date,model) VALUES(LAST_INSERT_ID(),%s,%s,%s)",(VN,Mfd,model))
         
-       #Extract insurance info
+        #Extract insurance info
         
         months=request.form.get('duration')
         amount=request.form.get('amount')
@@ -268,7 +268,7 @@ def InsuranceUpdate():
 #Add new Vehicle       
 @app.route('/NewVehicle',methods=['GET', 'POST'])            
 def NewVehicle():
-      if 'username' in session:
+    if 'username' in session:
         if request.method=="POST":
             username = session.get('username')
             with mydb.cursor(dictionary=True) as cursor:
@@ -284,9 +284,9 @@ def NewVehicle():
                     policy=request.form.get('policyProvider')
                     exp=request.form.get('expireDate')
                     cursor.execute("""INSERT INTO vehicle_info(userid,VechNum,make_date,model) VALUES(%s,%s,%s,%s)
-                                   """,(user_id,vnum,Mfd,model))
+                                """,(user_id,vnum,Mfd,model))
                     cursor.execute("""INSERT INTO insurance_info(userid,vid,months,expireDate,amount,provider) 
-                                   VALUES(%s,LAST_INSERT_ID(),%s,%s,%s,%s)""",(user_id,months,exp,amount,policy))
+                                VALUES(%s,LAST_INSERT_ID(),%s,%s,%s,%s)""",(user_id,months,exp,amount,policy))
                     mydb.commit() 
                     cursor.close()
                     flash('New Vehicle Added !')
@@ -296,20 +296,20 @@ def NewVehicle():
 #delete the user
 @app.route('/DeleteUser',methods=['GET', 'POST'])
 def DeleteUser():
-      if 'username' in session:
+    if 'username' in session:
         if request.method=="POST":
             username = session.get('username')
             with mydb.cursor(dictionary=True) as cursor:
                 cursor.execute("SELECT userid FROM users WHERE username = %s", (username,))
                 user_id_row = cursor.fetchone()
                 if user_id_row:
-                     user_id = user_id_row['userid']
-                     username = request.form['username']
-                     password = request.form['password'].encode('utf-8')
-                     cursor = mydb.cursor()
-                     cursor.execute("SELECT * FROM users WHERE username = %s ", (username,))
-                     user = cursor.fetchone()
-                     if user:
+                    user_id = user_id_row['userid']
+                    username = request.form['username']
+                    password = request.form['password'].encode('utf-8')
+                    cursor = mydb.cursor()
+                    cursor.execute("SELECT * FROM users WHERE username = %s ", (username,))
+                    user = cursor.fetchone()
+                    if user:
                         if bcrypt.checkpw(password, user[2].encode('utf-8')):
                             session['username'] = username
                             cursor.execute("""DELETE FROM insurance_info WHERE userid=%s""",(user_id,))
@@ -321,7 +321,7 @@ def DeleteUser():
                             return redirect('/login')
                         
         return render_template('DeleteUser.html')
-                     
+                
 
                     
 
@@ -336,5 +336,5 @@ def logout():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 

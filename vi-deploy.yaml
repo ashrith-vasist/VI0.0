@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vi-deployment
+  labels:
+    app: vi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vi
+  template:
+    metadata:
+      labels:               # corrected labels
+        app: vi
+    spec:
+      containers:
+      - name: vi            # added hyphen to indicate a list item
+        image: ash1810/vi-img:latest
+        ports:
+        - containerPort: 5000  # corrected indentation and port number
